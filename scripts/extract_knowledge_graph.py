@@ -263,7 +263,7 @@ class KnowledgeTreeBuilder:
         
         # 递归处理子节点
         for child in node.children:
-            self._flatten_node(child, rows)
+            self._flatten(child, rows)
 
 # ==================== Excel/CSV 生成 ====================
 
@@ -315,7 +315,7 @@ def generate_excel(rows: List[Dict], output_path: str, template_rules: str = "")
     wb.save(output_path)
     print(f"Excel 文件已保存: {output_path}")
 
-def generate_csv(rows: List[Dict], output_path: str):
+def generate_csv(rows: List[Dict], output_path: str, template_rules: str = ""):
     """生成 CSV 文件"""
     headers = ['一级知识点', '二级知识点', '三级知识点', '四级知识点', '五级知识点',
                '六级知识点', '七级知识点', '前置知识点', '后置知识点', '关联知识点',
@@ -397,72 +397,228 @@ def main():
     print(f"  内容长度: {len(content)} 字符")
     print()
     
-    # 3. 构建知识点树（这里需要根据实际文档内容实现）
+    # 3. 构建知识点树
     print("步骤3: 构建知识点树...")
-    print("  (注意: 这里需要根据实际文档内容实现具体抽取逻辑)")
     
-    # 4. 使用示例数据创建知识树
-    builder = KnowledgeTreeBuilder("知识点")
+    # 根据文档内容自动识别专业类别并构建知识树
+    # Extract subject from filename or content
+    import re
+    import os
     
-    # 示例层级关系
-    level1 = builder.add_node("电子信息类职业技能考试", 0)
-    level2_1 = builder.add_node("专业知识(应知)", 1, "电子信息类职业技能考试")
-    level2_2 = builder.add_node("技能操作(应会)", 1, "电子信息类职业技能考试")
+    subject = os.path.basename(args.source).split('.')[0]
+    if '土木水利' in subject:
+        builder = KnowledgeTreeBuilder("土木水利类专业知识")
+        root_name = "土木水利类专业知识"
+    elif '纺织服装' in subject:
+        builder = KnowledgeTreeBuilder("纺织服装类专业知识")
+        root_name = "纺织服装类专业知识"
+    else:
+        builder = KnowledgeTreeBuilder("专业知识")
+        root_name = "专业知识"
     
-    # 示例电工知识点层级（部分）
-    dian_gong = builder.add_node("电工技术基础与技能", 2, "专业知识(应知)")
-    an_quan_yong_dian = builder.add_node("安全用电常识", 3, "电工技术基础与技能")
-    builder.add_node("触电种类和形式", 4, "安全用电常识", cognitive_level=get_cognitive_level("掌握"))
-    builder.add_node("安全用电的技术措施和制度措施", 4, "安全用电常识", cognitive_level=get_cognitive_level("重点掌握"))
-    builder.add_node("触电的急救方法", 4, "安全用电常识", cognitive_level=get_cognitive_level("了解"))
+    print(f"  已初始化知识树构建器: {root_name}")
     
-    dian_lu_ji_chu = builder.add_node("电路基础", 3, "电工技术基础与技能")
-    builder.add_node("电路组成及三种状态", 4, "电路基础", cognitive_level=get_cognitive_level("理解"))
-    builder.add_node("常用元器件图形符号", 4, "电路基础", cognitive_level=get_cognitive_level("掌握"))
+    # 4. 解析并添加知识点
+    print("步骤4: 解析文档内容...")
     
-    # 示例电子知识点层级
-    dian_zi = builder.add_node("电子技术基础与技能", 2, "专业知识(应知)")
-    ban_dao_ti = builder.add_node("半导体的主要特性", 3, "电子技术基础与技能")
-    builder.add_node("半导体的概念、特性", 4, "半导体的主要特性", cognitive_level=get_cognitive_level("了解"))
-    builder.add_node("P型、N型半导体", 4, "半导体的主要特性", cognitive_level=get_cognitive_level("了解"))
-    builder.add_node("PN结的特性", 4, "半导体的主要特性", cognitive_level=get_cognitive_level("掌握"))
+    # 解析文档结构 - 识别层级关系
+    lines = [line.strip() for line in content.split('\n') if line.strip()]
     
-    # 示例单片机知识点层级
-    dan_pian_ji = builder.add_node("单片机原理及应用", 2, "专业知识(应知)")
-    dan_pian_ji_gai_shu = builder.add_node("单片机概述", 3, "单片机原理及应用")
-    builder.add_node("单片机的发展与分类", 4, "单片机概述", cognitive_level=get_cognitive_level("了解"))
+    # 识别知识点层级
+    knowledge_nodes = []  # (level, identifier, name, attrs)
+    current_chapters = {}  # {level: name}
     
-    # 示例技能操作知识点
-    dian_gong_ji_neng = builder.add_node("电工技术基础与技能", 2, "技能操作(应会)")
-    builder.add_node("安全用电常识与操作规范", 3, "电工技术基础与技能", cognitive_level="应用", category="程序性")
+    # Track current parent at each level
+    parent_stack = {root_name: 0}
     
-    dian_zi_ji_neng = builder.add_node("电子技术基础与技能", 2, "技能操作(应会)")
-    builder.add_node("常用电子元器件的识别、选用与测试", 3, "电子技术基础与技能", cognitive_level="应用", category="程序性")
+    for line in lines:
+        # Skip non-content lines
+        if line in ['(2023年版)', '— 2—', '— 3—', '— 4—', '— 5—', '— 6—', '第 2页']:
+            continue
+        
+        # Skip pure percentages and non-knowledge lines
+        if '%' in line and len(line) < 30 and ('占' in line or '约占' in line):
+            continue
+        if '约占' in line and len(line) < 40:
+            continue
+        if any(skip in line for skip in ['选择题', '判断题', '综合题', '试卷结构']):
+            continue
+            
+        # Match 一、二、三、 Chinese numerals with 、 (but only for major sections)
+        # Skip common non-knowledge headings
+        chinese_num_match = re.match(r'^([一二三四五六七八九十]+)[、]\s*(.+)$', line)
+        if chinese_num_match:
+            roman = chinese_num_match.group(1)
+            name = chinese_num_match.group(2).strip()
+            # Skip common administrative headings
+            if name in ['考试性质', '考试依据', '考试方式', '考试范围和要求']:
+                continue
+            if name and len(name) > 1:
+                roman_map = {'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10}
+                level = 1  # 一、 topics are 一级 (A列)
+                current_chapters[level] = name
+                knowledge_nodes.append((level, roman, name, {}))
+                continue
+        
+        # Match 【xxx】 brackets - major sections (level 1 -> A)
+        bracket_match = re.match(r'【(.+)】', line)
+        if bracket_match:
+            name = bracket_match.group(1).strip()
+            if name and len(name) > 1:
+                current_chapters[1] = name
+                knowledge_nodes.append((1, name, name, {}))
+                continue
+        
+        # Match (一)、(二)、(三) - Chinese roman numerals in parentheses (level 2 -> B)
+        chapter_match = re.match(r'^\(([一二三四五六七八九十]+)\)[，。、\s]*(.+)$', line)
+        if chapter_match:
+            roman = chapter_match.group(1)
+            name = chapter_match.group(2).strip()
+            if name and len(name) > 1:
+                roman_map = {'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10}
+                # This is level 2 (B列)
+                level = 2
+                current_chapters[level] = name
+                knowledge_nodes.append((level, roman, name, {}))
+                continue
+        
+        # Match 1.、2.、3. pattern - main topics (level 2 -> B)
+        num_match = re.match(r'^(\d+)[.、]\s*(.+)$', line)
+        if num_match:
+            num = num_match.group(1)
+            name = num_match.group(2).strip()
+            # Skip if contains special patterns or is too short
+            if '%' in name or '约占' in name or '约' in name or len(name) < 3:
+                continue
+            if name:
+                level = 2  # 1. topics are 二级 (B列)
+                current_chapters[level] = name
+                knowledge_nodes.append((level, num, name, {}))
+                continue
+        
+        # Match (1)、(2)、(3) - sub topics (level 3 -> C)
+        sub_match = re.match(r'^\((\d+)\)[，。、\s]*(.+)$', line)
+        if sub_match:
+            num = sub_match.group(1)
+            name = sub_match.group(2).strip()
+            if name and len(name) > 2:
+                level = 3  # (1) topics are 三级 (C列)
+                # Check if this line contains cognitive verbs
+                attrs = {}
+                for verb in ["重点掌握", "掌握", "理解", "了解", "应用", "分析", "评价", "创造"]:
+                    if verb in name:
+                        attrs["cognitive_level"] = get_cognitive_level(verb)
+                        attrs["tags"] = get_tags(verb)
+                        attrs["category"] = get_category(name, name)
+                        break
+                knowledge_nodes.append((level, num, name, attrs))
+                continue
+        
+        # If line contains cognitive verbs but wasn't matched by patterns above
+        # This might be D-level knowledge items (四级知识点)
+        if len(line) > 10:
+            attrs = {}
+            has_cognitive_verb = False
+            for verb in ["重点掌握", "掌握", "理解", "了解", "应用", "分析", "评价", "创造"]:
+                if verb in line:
+                    attrs["cognitive_level"] = get_cognitive_level(verb)
+                    attrs["tags"] = get_tags(verb)
+                    attrs["category"] = get_category(line, line)
+                    has_cognitive_verb = True
+                    break
+            
+            if has_cognitive_verb:
+                # Try to find appropriate level based on context
+                if len(knowledge_nodes) > 0:
+                    last_level = knowledge_nodes[-1][0]
+                    if last_level == 3:  # Last was C-level, this is D-level
+                        level = 4  # D列
+                    elif last_level == 2:  # Last was B-level, this might be C-level continuation
+                        level = 3  # C列
+                    else:
+                        level = last_level + 1 if last_level < 7 else 7
+                else:
+                    level = 3  # Default to C-level
+                
+                knowledge_nodes.append((level, "", line, attrs))
     
-    dan_pian_ji_ji_neng = builder.add_node("单片机原理及应用", 2, "技能操作(应会)")
-    builder.add_node("STC51单片机最小系统程序设计", 3, "单片机原理及应用", cognitive_level="应用", category="程序性")
+    # Build knowledge tree - map levels to A-G columns
+    # Level 1 -> A, Level 2 -> B, etc.
+    level_to_col = {1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F', 7: 'G'}
     
-    # 设置示例关系
-    pre_relations = {
-        "安全用电的技术措施和制度措施": "触电种类和形式",
-        "电路组成及三种状态": "安全用电常识",
-        "常用元器件图形符号": "电路组成及三种状态",
-        "P型、N型半导体": "半导体的概念、特性",
-        "PN结的特性": "P型、N型半导体",
-    }
-    related_relations = {
-        "触电种类和形式": "安全用电的技术措施和制度措施",
-        "电路组成及三种状态": "常用元器件图形符号",
-        "P型、N型半导体": "PN结的特性"
-    }
-    builder.set_relations(pre_relations, related_relations)
+    # Debug: print first 10 nodes being added
+    print(f"  前10个节点:")
+    for i, (level, num, name, attrs) in enumerate(knowledge_nodes[:10]):
+        print(f"    {i+1}: 层级{level} '{name[:50]}...' 属性: {attrs}")
     
-    # 5. 生成输出
-    print("步骤4: 生成输出文件...")
+    for level, num, name, attrs in knowledge_nodes:
+        # Find parent - look for the most recent node at a lower level
+        parent_name = None
+        parent_level = -1
+        for p_name, p_level in sorted(parent_stack.items(), key=lambda x: x[1], reverse=True):
+            if p_level < level:
+                parent_level = p_level
+                parent_name = p_name
+                break
+        
+        # Add node
+        builder.add_node(name, level, parent_name, **attrs)
+        
+        # Update parent stack - keep only the latest at each level
+        # Remove any nodes at same or higher level
+        for lvl in list(parent_stack.keys()):
+            if parent_stack[lvl] >= level:
+                del parent_stack[lvl]
+        parent_stack[name] = level
+    
+    print(f"  已解析 {len(knowledge_nodes)} 个知识点节点")
+    
+    # 5. 自动生成关系（基于层级）
+    print("步骤5: 生成知识点关系...")
+    
+    # 根据父子关系自动生成前置关系
+    pre_relations = {}
+    rows_temp = builder.flatten()
+    
+    # 简单的前置关系：同一父节点的子节点之间，后一个的前置是前一个
+    parent_children = {}
+    for row in rows_temp:
+        for col in 'ABCDEFG':
+            if row.get(col):
+                node_name = row[col]
+                # 找父级
+                for parent_col in 'ABCDEFG':
+                    parent_val = row.get(parent_col, '')
+                    if parent_val and parent_val != node_name:
+                        if parent_val not in parent_children:
+                            parent_children[parent_val] = []
+                        if node_name not in parent_children[parent_val]:
+                            parent_children[parent_val].append(node_name)
+    
+    # 生成前置关系
+    for parent, children in parent_children.items():
+        if len(children) > 1:
+            # Sort children to maintain order (based on parsing order)
+            for i, child in enumerate(children):
+                if i > 0:
+                    pre_relations[child] = children[i-1]
+    
+    builder.set_relations(pre_relations, {})
+    print(f"  已生成 {len(pre_relations)} 个前置关系")
+    
+    # 6. 生成输出
+    print("步骤6: 生成输出文件...")
     rows = builder.flatten()
     
+    # 同时生成 CSV 备份
+    csv_path = args.output.replace('.xlsx', '.csv') if args.output.endswith('.xlsx') else args.output
+    if not args.output.endswith('.csv'):
+        print(f"  步骤6.1: 生成 CSV 备份文件...")
+        generate_csv(rows, csv_path, template['a1_rules'])
+        print(f"  CSV 备份文件已保存: {csv_path}")
+    
     if args.output.endswith('.csv'):
-        generate_csv(rows, args.output)
+        generate_csv(rows, args.output, template['a1_rules'])
     else:
         generate_excel(rows, args.output, template['a1_rules'])
     
