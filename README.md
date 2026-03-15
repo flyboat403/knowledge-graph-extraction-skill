@@ -1,101 +1,122 @@
 # 文档知识图谱结构化抽取技能
 
-自动化从 Word/PDF 文档抽取层次化知识节点，生成符合知识图谱系统导入要求的结构化数据。
+从文档中抽取层次化知识节点，输出可导入知识图谱系统的结构化数据。
 
-## 🎯 功能特性
+## 功能特性
 
-### 核心能力
-- **层次化抽取**：从 docx/pdf 抽取 7 级以上知识点层级结构
-- **认知标注**：自动识别认知层级（记忆→理解→应用→分析→评价→创造）
-- **关系生成**：自动生成前置/后置/关联三元关系
-- **标准输出**：生成符合 Neo4j/Jena 格式的 CSV/Excel 文件
-- **反模式防护**：内置详尽的防错指南和验证约束
+- **层次化抽取**：从 docx/pdf 中提取 6+ 级知识点层级
+- **认知标注**：自动标注认知层级（记忆/理解/应用/分析/评价/创造） 
+- **关系生成**：自动生成前置/后置/关联关系
+- **格式支持**：输出 CSV/Excel 兼容 Neo4j/Jena 导入
+- **反模式指导**：详尽的防错指南
 
-### 技术约束
-- **树状结构**：每行只填写一个知识点（A-G列区间）
-- **关系约束**：H-I-J列关系用英文分号";"隔开  
-- **单一选择**：认知维度和分类为单选值
-- **完整保留**：模板列结构不可删除
+## 输入要求
 
-## 📁 目录结构
+- **源文档**：`docx` 或 `pdf` 格式
+- **模板**：`xlsx` 格式，A1单元格包含格式规则
+
+## 输出格式
+
+- **层级结构**：A-G 列为层级（每行一知识点）  
+- **关系数据**：H-I-J 列（前置/后置/关联）
+- **标签分类**：K-O 列（标签/认知/分类/目标/说明）
+
+## 技术约束
+
+- **树状结构**：每行只能填写一个知识点 (A-G列单一填充)
+- **层级递进**：A列(一级) 至 G列(七级)  
+- **认知维度**：记忆/理解/应用/分析/评价/创造 (单选值)
+- **知识分类**：亊实性/概念性/程序性/元认知 (单选值)
+- **关系互斥**：任两点可仅有一类关系 (前置/后置/关联)
+
+### 关系生成机制
+
+- **H列（前置）**：学习当前知识点前要掌握
+- **I列（后置）**：学习当前知识点后可继续学
+- **J列（关联）**：相关但非依赖的知识点
+
+## 使用方式
+
+### 命令行运行
+```bash
+python scripts/extract_knowledge_graph.py \
+  --source document.docx \
+  --template assets/template.xlsx \
+  --output output.xlsx
+```
+
+### 参数说明
+- `source`：输入文档路径  
+- `template`：格式模板路径
+- `output`：输出文件路径
+
+## 安装使用
+
+```bash
+# 安装技能
+opencode skills install https://github.com/flyboat403/knowledge-graph-extraction-skill.git
+
+## 或克隆到手动安装
+mkdir -p ~/.agents/skills/knowledge-graph-extractor/
+cp SKILL.md ~/.agents/skills/knowledge-graph-extractor/
+cp -r scripts/ ~/.agents/skills/knowledge-graph-extractor/
+cp -r assets/ ~/.agents/skills/knowledge-graph-extractor/
+cp -r references/ ~/.agents/skills/knowledge-graph-extractor/
+cp -r examples/ ~/.agents/skills/knowledge-graph-extractor/
+```
+
+## 目录结构
 
 ```
 knowledge-graph-extraction-skill/
-├── SKILL.md                    # 核心技能定义文件
-├── skill.json                  # Coze平台兼容格式
+├── SKILL.md                    # 核心技能定义 (含 name+description)
+├── skill.json                  # Coze 平台兼容格式  
 ├── scripts/
-│   └── extract_knowledge_graph.py   # 核心抽取引擎
+│   └── extract_knowledge_graph.py   # 抽取引擎
 ├── references/
-│   ├── output-format.md        # 输出格式规范
-│   └── cognitive-levels.md     # 认知层级定义
+│   ├── output-format.md         # 输出格式规范
+│   └── cognitive-levels.md      # 认知层级定义
 ├── assets/
-│   └── template.xlsx           # 输出模板文件
+│   └── template.xlsx            # 模板文件
 ├── examples/
-│   ├── input/                  # 输入示例文档
-│   │   ├── 办公软件应用课程标准.pdf
-│   │   └── sample_template.xlsx
-│   └── output/                 # 输出示例文件
-│       ├── sample_extraction_result.csv
-│       └── sample_extraction_result.xlsx
-├── README.md                   # 项目说明 (此文件)
-├── QUICKSTART.md               # 快速入门指南
-├── BEST_PRACTICES.md           # 最佳实践指南
-└── RELEASE_NOTES.md            # 发布说明
+│   └── 示例输入输出文件
+├── README.md                  # 项目说明 (即本文件)
+├── QUICKSTART.md              # 快速入门
+├── BEST_PRACTICES.md          # 最佳实践
+├── FAQ.md                     # 常见问题  
+└── RELEASE_NOTES.md           # 发布说明
 ```
 
-## 🚀 快速开始
+## 应用场景
 
-### 安装
-```bash
-# 克隆仓库
-git clone https://github.com/flyboat403/knowledge-graph-extraction-skill.git
+- **教育领域**：从课程标准/考试大纲抽取知识图谱
+- **技能培训**：自动化知识结构化分析
+- **知识管理**：文档知识转变为结构化知识库
+- **图谱构建**：为 Neo4j/Apache Jena 准备数据
 
-# 或集成到 OpenCode 环境
-# 放置 SKILL.md 及相关文件到 ~/.agents/skills/knowledge-graph-extractor/
-```
+### 教育示例
+输入文档："四川省普通高校招生职业技能考试大纲.pdf"  
+输出格式：A1单元格含格式约束的Excel文件
+- **树状结构**: A列(课程)→B列(模块)→C列(章节)→D列(主题)→E列(知识点)
+- **关系抽取**: 学习依赖/相关关联关系（H-I-J列）
+- **认知标注**: 记忆/理解/应用/分析/评价/创造（L列）
+- **分类标注**: 事实性/概念性/程序性/元认知（M列）
 
-### 使用
-```bash
-# 直接运行脚本
-python scripts/extract_knowledge_graph.py \
-  --source 课程标准.docx \
-  --template assets/template.xlsx \
-  --output output_result.xlsx
-```
-
-## 📋 输入输出规范
-
-### 输入要求
-- **源文档**：`docx` 或 `pdf` 格式
-- **模板文件**：`xlsx` 格式，A1 单元格包含格式规范
-
-### 输出格式 (A-O列)
-| 列 | 含义 | 说明 |
-|----|------|------|
-| A-G | 知识点层级 | 树状结构（每行一个知识点） |
-| H | 前置知识点 | 学习当前知识前需掌握 |
-| I | 后置知识点 | 学完当前知识后可学习 |
-| J | 关联知识点 | 与其他知识点的关联 |
-| K | 标签 | 重点/难点/课程思政 等 |
-| L | 认知维度 | 记忆/理解/应用/分析/评价/创造 |
-| M | 知识分类 | 事实性/概念性/程序性/元认知 |
-| N-O | 教学目标/知识点说明 | 其他教学属性 |
-
-## 🎓 应用场景
-
-- **教育领域**：从课程标准、教学大纲提取知识点构建知识图谱
-- **技能培训**：自动化生成技能操作规范的层次化结构  
-- **知识管理**：将文档知识转变为结构化知识库
-- **图谱构建**：为 Neo4j/Apache Jena 等图谱工具准备数据
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request 来帮助完善这个技能。
-
-## 📄 许可证
-
-MIT License
+输出文件可直接导入知识图谱工具，构建学科知识体系图谱。
 
 ---
 
-**Made with ❤️ for the OpenCode Community**
+## 完整文档
+
+详细使用说明请参考：
+
+- [**快速入门**](QUICKSTART.md) - 一行命令开始使用
+- [**最佳实践**](BEST_PRACTICES.md) - 优化输出结果
+- [**FAQ**](FAQ.md) - 问题解答与解决方法
+- [**使用技巧**](CHEATSHEET.md) - 快速参考卡片
+- [**安装指南**](ENVIRONMENT_SETUP.md) - 环境配置说明
+
+---
+
+**Powered by OpenCode & Sisyphus**  
+**Author**: flyboat403
