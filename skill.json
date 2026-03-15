@@ -1,1 +1,16 @@
-$(cat /root/kg_skill/skill.json)
+{
+  "name": "knowledge-graph-extractor",
+  "version": "1.0.0", 
+  "description": "从PDF/Word文档提取层次化知识节点，输出可导入Neo4j/Jena的CSV/Excel文件。触发场景：从文档抽取知识点、构建知识图谱、生成结构化教学数据、导出知识点层级关系、分析课程标准、解析教学大纲、上传docx/pdf文档和xlsx模板时",
+  "author": "Sisyphus",
+  "license": "MIT",
+  "imports": [],
+  "files": {
+    "SKILL.md": "./SKILL.md",
+    "scripts/extract_knowledge_graph.py": "./scripts/extract_knowledge_graph.py", 
+    "references/cognitive-levels.md": "./references/cognitive-levels.md",
+    "references/output-format.md": "./references/output-format.md",
+    "assets/template.xlsx": "./assets/template.xlsx",
+    "examples/sample_template.xlsx": "./examples/sample_template.xlsx"
+  }
+}
