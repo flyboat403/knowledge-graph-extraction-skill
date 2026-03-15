@@ -1,6 +1,6 @@
 ---
 name: knowledge-graph-extractor
-description: 从PDF/Word文档提取层次化知识节点，输出可导入Neo4j/Jena的CSV/Excel文件。触发场景：从文档抽取知识点、构建知识图谱、生成结构化教学数据、导出知识点层级关系、分析课程标准、解析教学大纲、上传docx/pdf文档和xlsx模版时
+description: 从PDF/Word文档提取层次化知识节点，输出可导入Neo4j/Jena的CSV/Excel文件。触发场景：从文档抽取知识点、构建知识图谱、生成结构化教学数据、导出知识点层级关系、分析课程标准、解析教学大纲、上传docx/pdf文档和xlsx模板时
 ---
 
 # 文档知识图谱结构化抽取
@@ -10,7 +10,7 @@ description: 从PDF/Word文档提取层次化知识节点，输出可导入Neo4j
 从 docx/pdf 文档中抽取层次化知识节点，标注认知层级和语义关系，输出可直接导入知识图谱系统的结构化文件。
 
 **核心能力：**
-- 抽出至少 6 级层析化知识节点
+- 抽出至少 7 级层次化知识节点
 - 标注认知层级（记忆/理解/应用/分析/评价/创造）
 - 识另语义关系（属于/依赖于/先修于/关联于等）
 - 输出 CSV 和 Excel 格式文件
@@ -20,17 +20,17 @@ description: 从PDF/Word文档提取层次化知识节点，输出可导入Neo4j
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | source_document | file | 是 | 待抽取的源文档，支持 docx/pdf 格式 |
-| template_xlsx | file | 是 | 字段格式模版 xlsx 文件，需读取 A1 单元格的格式要求 |
+| template_xlsx | file | 是 | 字段格式模板 xlsx 文件，需读取 A1 单元格的格式要求 |
 
 ## 使用步骤
 
-1. 解析模版文件，读取 A1 单元格的格式要求
+1. 解析模板文件，读取 A1 单元格的格式要求
 2. 提取源文档中的文本内容并进行结构化分析
-3. 抽取层次化知识节点（至少 6 级），标注认知层级
-4. 识别节店间语义关系
-5. 按模版字段格式生成 CSV 文件
+3. 抽取层次化知识节点（至少 7 级），标注认知层级
+4. 识别节点间语义关系
+5. 按模板字段格式生成 CSV 文件
 6. 将 CSV 转换为 Excel 文件
-7. 输出抽职结果概要
+7. 输出抽取结果概要
 
 ---
 
@@ -51,7 +51,7 @@ description: 从PDF/Word文档提取层次化知识节点，输出可导入Neo4j
 A列至G列对应知识点的层级关系，采用**树状结构**表示：
 
 - **每行只能填写一个知识点**（仅一个单元格有值，其他为空）
-- 知识点所在的列位置表示其层级（A=一級，B=二级，...，G=七级）
+- 知识点所在的列位置表示其层级（A=一级，B=二级，...，G=七级）
 - 通过行的顺序和缩进位置形成父子节点关系
 - 知识点从上到下按层级展开，形成树状结构
 
@@ -86,29 +86,29 @@ A列至G列对应知识点的层级关系，采用**树状结构**表示：
 
 | 列 | 关系类型 | 说明 | 生成规则 |
 |----|----------|------|----------|
-| H | 前置知识点 | 学习当前知识点前需要先掌握的知识点 | 基于知识点的逻辑依赖关系识别 |
-| I | 后置知识点 | 学习当前知识点后可以学习的知识点 | H列的反向关系（A→B 则 B的后置是A） |
-| J | 关联知识点 | 钊当前知识点相关但不构成前置/后置关系的知识点 | 同类主題、相似概念、对比知识点 |
+| H | 前置知识节点 | 学习当前知识点前需要先掌握的知识点 | 基于知识点的逻辑依赖关系识别 |
+| I | 后置知识节点 | 学习当前知识点后可以学习的知识点 | H列的反向关系（A→B 则 B的后置是A） |
+| J | 关联知识节点 | 与当前知识点相关但不构成前置/后置关系的知识点 | 同类主題、相似概念、对比知识点 |
 
 **关系生成规则：**
 
-1. **前置知识点（H列）**：
+1. **前置知识节点（H列）**：
    - 基础概念是高级概念的前置（如：电阻 → 欧姆定律）
    - 工具使用是应用操作的前置（如：万用表使用 → 电流测量）
    - 理论知识是实践技能的前置（如：电路原理 → 电路安装）
 
-2. **后置知识点（I列）**：
+2. **后置知识节点（I列）**：
    - 自动由前置关系生成：如罘 A 的前置是 B，则 B 的后置是 A
    - 确保关系的双向性
 
-3. **关联知识点（J列）**：
-   - 同一主题下的并列知识点
-   - 相似概念或对比概念
-   - 不同章节但逻辑相关的知识点
+3. **关联知识节点（J列）**：
+   - 同一主题下的并列知识节点
+   - 相似概念或对别概念
+   - 不同章节但逻辑相关的知识节点
 
 **格式要求：**
-- 多个知识点之间用英文分号 `;` 隔开
-- **重要**：任意两丄知识点之间只能存在一种关系（前置、后置或关联）
+- 多个知识节点之间用英文分号 `;` 隔开
+- **重要**：任意两节点之间只能存在一种关系（前置、后置或关联）
 - 新导入的关系将覆盖旧关系
 - 关系设置总数上限：2000 个
 
@@ -119,18 +119,18 @@ A列至G列对应知识点的层级关系，采用**树状结构**表示：
 
 **4. 认知维度（必填，单选）**
 - 可选值：`记忆`、`理解`、`应用`、`分析`、`评价`、`创造`
-- 每个知识点只能填入一个认知维度
+- 每个知识节点只能填入一个认知维度
 
 **5. 知识点分类（必填，单选）**
-- 可选值：`亊实性`、`概念性`、`程序性`、`元认知`
-- 每个知识点只能填入一个分类
+- 可选值：`事实性`、`概念性`、`程序性`、`元认知`
+- 每个知识节点只能填入一个分类
 
 **6. 知识点说明**
-- 仅持支纯文本输入
+- 仅支特纯文本输入
 - 不支持图片、公式等富媒体内容
 
-**7. 模版完整性**
-- 不得删除模版中的任何列
+**7. 模板完整性**
+- 不得删除模板中的任何列
 - 不得删除表头行
 
 ### 认知层级说明
@@ -146,101 +146,102 @@ A列至G列对应知识点的层级关系，采用**树状结构**表示：
 
 ### 语义关系类型
 
-| 关系类型 | 说明 |
+| 关糹类型 | 说明 |
 |----------|------|
 | 属于 | 知识点的归属关系 |
-| 依赖于 | 前置知识依赖 |
+| 依存于 | 前置知识依赖 |
 | 先修于 | 学习顺序关系 |
-| 关联于 | 相关性连接 |
+| 關联于 | 相关性连接 |
 | 包含 | 整体与部分关系 |
 | 组成 | 构成关系 |
 | 因果 | 因果逻辑关系 |
 
 ---
-# Critical Anti-Patterns
 
-**NEVER do these — they will break the import:**
+## 关键Anti-Patterns (重要)
 
-### 1. NEVER fill multiple knowledge points in one row
+**绝对禁止做这些 — 会导致导入失败:**
 
-```
-❌ WRONG: ['一级知识点', '二级知识点', '三级知识点', '', '', '', '']
-✅ RIGHT: ['一级知识点', '', '', '', '', '', '']  # 每行只有一个知识点
-```
-
-**Why**: The import system uses tree structure. Each row represents ONE node. Position indicates hierarchy level.
-
-### 2. NEVER use Chinese semicolon for relations
+### 1. NEVER 一行填写多个知识节点
 
 ```
-❌ WRONG: 知识点A；知识点B；知识点C
-✅ RIGHT: 知识点A;知识点B;知识点C
+❌ 错误: ['一级节点', '二级节点', '三级节点', '', '', '', '']
+✅ 正确: ['一级节点', '', '', '', '', '', '']  # 每行只有一个节点
 ```
 
-**Why**: The parser expects ASCII semicolon (`;`, U+003B), not Chinese semicolon (`；`, U+FF1B).
+**Why**: 导入系统使用树结构。每行表示 ONE 节点。位置表示层级。
 
-### 3. NEVER fill multiple cognitive levels or categories
-
-```
-❌ WRONG: L列 = "记忆;理解"
-✅ RIGHT: L列 = "理解"  # 单选值
-
-❌ WRONG: M列 = "概念性;程序性"
-✅ RIGHT: M列 = "概念性"  # 单选值
-```
-
-**Why**: These fields are single-select. Multiple values will cause import failure.
-
-### 4. NEVER delete or reorder template columns
+### 2. NEVER 使用中文分号分隔关系
 
 ```
-❌ WRONG: 删除K列，或调整A-G列顺序
-✅ RIGHT: 保持15列完整 (A-O)
+❌ 错误: 知识节点A；知识节点B；知识节点C
+✅ 正确: 知识节点A;知识节点B;知识节点C
 ```
 
-**Why**: The import system expects fixed column positions. Missing columns will break the mapping.
+**Why**: 解析器期待 ASCII 分号 (`;`, U+003B)，不是中文分号 (`；`, U+FF1B)。
 
-### 5. NEVER leave hierarchy path incomplete
+### 3. NEVER 填写多个认知维度或分类
 
 ```
-❌ WRONG: 
+❌ 错误: L列 = "记忆;理解"
+✅ 正确: L列 = "理解"  # 单选值
+
+❌ 错误: M列 = "概念性;程序性"  
+✅ 正确: M列 = "概念性"  # 单选值
+```
+
+**Why**: 这些字段是单选。多个值会导致导入失败。
+
+### 4. NEVER 删除或重排列模板的列
+
+```
+❌ 错误: 删除K列，或调整A-G列顺序
+✅ 正确: 保持15列完整 (A-O)
+```
+
+**Why**: 导入系统期待固定列位置。缺失列会破坏映射。
+
+### 5. NEVER 不完整的层级路径
+
+```
+❌ 错误: 
   行1: [A列: 课程] 
   行2: [C列: 章节]  # 跳过了B列
 
-✅ RIGHT:
+✅ 正确:
   行1: [A列: 课程]
   行2: [B列: 模块]
   行3: [C列: 章节]
 ```
 
-**Why**: Each knowledge point must have a complete parent chain. Jumping levels breaks the tree.
+**Why**: 每个知识节点必须有完整的父链。跳躍层级会破坏树结构。
 
 ---
 
 ## 抽取决策框架
 
-Before extracting, ask yourself these questions:
+抽取前问自己以下问题:
 
 ### 1. 边界判断
 
-**问题**: 这个知识点能独立存在吗？
+**问题**: 这个节点能独立存在吗？
 
 | 情况 | 判断 | 行动 |
 |------|------|------|
-| 概念过大 ("电路基础") | 太宽 | 拆分为多个子知识点 |
-| 细节过碎 ("电阻的单位") | 太窄 | 合并到上级知识点 |
-| 可独立理解 | 合适 | 保留为独立节点 |
+| 概念过大 ("电路基础") | 太宽 | 拆分为多个子节点 |
+| 细节过碎 ("电阻的单位") | 太窄 | 合并到上级节点 |
+| 可独立理解 | 合適 | 保留为独立节点 |
 
-**判断标准**: 如果去掉上下文，这个知识点是否仍有独立意义？
+**判断标准**: 如果去掉上下文，这个节点是否有独立意义？
 
 ### 2. 层级定位
 
 **问自己三个问题:**
 
 ```
-Q1: 上级 - 这个知识点属于哪个模块/章节？
-Q2: 下级 - 这个知识点包含哪些具体内容？
-Q3: 平级 - 还有哪些同类知识点？
+Q1: 上级 - 这个节点属于哪个模块/章节？
+Q2: 下级 - 这个节点包含哪些具体内容？  
+Q3: 平级 - 还有哪些同类节点？
 ```
 
 **层级分配规则:**
@@ -263,10 +264,10 @@ Q3: 平级 - 还有哪些同类知识点？
 - 自动生成: 如果 A的前置是B，则 B的后置是A
 - 确保双向性
 
-**关联关系 (J列) - 钊关但非依赖:**
-- 同一主题下的并列知识点
-- 相似或対比概念
-- 不同章节但逻辑相关
+**关联关系 (J列) - 相关但非依赖:**
+- 同一主题下的并列节点
+- 相似或对比概念
+- 不同章节但逻辑相关的节点
 
 ---
 
@@ -274,10 +275,9 @@ Q3: 平级 - 还有哪些同类知识点？
 
 ### 步骤 1: 读取模板规则
 
-**MANDATORY - READ ENTIRE FILE**: Before processing, read [references/output-format.md](references/output-format.md) to understand the exact column structure constraints.
+**MANDATORY - 阅读整个文件**: 在处理前，必须完整阅读 [references/output-format.md](references/output-format.md) 以了解确切的列結構约束。
 
 使用脚本自动解析模板:
-
 ```bash
 python scripts/extract_knowledge_graph.py --template template.xlsx --dry-run
 ```
@@ -285,29 +285,28 @@ python scripts/extract_knowledge_graph.py --template template.xlsx --dry-run
 ### 步骤 2: 解析源文档
 
 使用脚本处理，脚本已内置格式选择逻辑:
-
 ```bash
 # docx 文档
 python scripts/extract_knowledge_graph.py --source document.docx --template template.xlsx --output output.xlsx
 
-# pdf 文档
-python scripts/extract_knowledge_graph.py --source document.pdf --template template.xlsx --output output.xlsx
+# pdf 文档  
+python scripts/extract_knowledge_graph.py --source document.pdf --template template.xlsx --output output.csv
 ```
 
 ### 步骤 3: 构建知识节点树
 
-**MANDATORY - READ ENTIRE FILE**: Before building, read the "层级关系约束" section in [references/output-format.md](references/output-format.md).
+**MANDATORY - 读取完整文件**: 在构建前，阅读 [references/output-format.md](references/output-format.md) 中的 "树状结构约束" 部分。
 
-核心规则: **每行一个知识点**，位置表示层级。
+核心规则: **每行一个节点**，位置表示层级。
 
 ### 步骤 4: 生成关系
 
-根据"抽取决策框架"中的关系识别规则，为每个知识点填充 H/I/J 列。
+根据"抽取决策框架"中的关系识别规则，为每个节点填充 H/I/J 列。
 
-### 步骤 5: 验证与输出
+### 步骤 5: 验证與输出
 
 脚本自动验证:
-- 每行只有一个知识点 (A-G列)
+- 每行只有一个节点 (A-G列)
 - 认知维度和分类为单选值
 - 分隔符为英文分号
 
@@ -331,4 +330,4 @@ python scripts/extract_knowledge_graph.py --source document.pdf --template templ
 |----------|------|
 | FILE_FORMAT_ERROR | 上传的文档格式不支持，仅支持 docx/pdf（源文档）和 xlsx（模版） |
 | CELL_READ_ERROR | 无法读取 xlsx 模版 A1 单元格，请检查文件是否损坏 |
-| HIERARCHY_INSUFFFFICIENT | 文档中提职的知识节点层级不足 6 級，请补充文档内容 |
+| HIERARCHY_INSUFFICIENT | 文档中提取的知识节点层级不足 6 級，请补充文档内容 |
