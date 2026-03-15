@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 文档知识图谱结构化抽取脚本
 
@@ -21,6 +22,12 @@ import argparse
 import csv
 import subprocess
 import sys
+import io
+
+# 设置控制台输出编码
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 from dataclasses import dataclass, field
 from typing import Optional, Dict, List, Set
 
@@ -109,17 +116,21 @@ def get_tags(verb: str) -> str:
 # ==================== 文档解析 ====================
 
 def parse_docx(filepath: str) -> str:
-    """解析 docx 文档"""
+    """解析 docx 文档 - 使用 python-docx"""
     try:
-        result = subprocess.run(
-            ["pandoc", filepath, "-t", "markdown"], 
-            capture_output=True, text=True, timeout=30
-        )
-        if result.returncode != 0:
-            print(f"pandoc warning: {result.stderr}", file=sys.stderr)
-        return result.stdout
-    except FileNotFoundError:
-        print("Error: pandoc not installed. Run: apt-get install pandoc", file=sys.stderr)
+        from docx import Document
+        doc = Document(filepath)
+        paragraphs = []
+        for para in doc.paragraphs:
+            text = para.text.strip()
+            if text:
+                paragraphs.append(text)
+        return "\n".join(paragraphs)
+    except ImportError:
+        print("Error: python-docx not installed. Run: pip install python-docx", file=sys.stderr)
+        return ""
+    except Exception as e:
+        print(f"Error parsing docx: {e}", file=sys.stderr)
         return ""
 
 def parse_pdf(filepath: str) -> str:
@@ -176,9 +187,10 @@ class KnowledgeTreeBuilder:
             self.all_nodes[parent_name].children.append(node)
         elif level > 0:
             # Auto-link to parent: find highest-level ancestor
+            max_level = max(n.level for n in self.all_nodes.values()) if self.all_nodes else 0
             potential_parents = [
                 n for n in self.all_nodes.values() 
-                if n.level < level and n.level >= max(n.level for n in self.all_nodes.values()) if self.all_nodes else 0
+                if n.level < level and n.level >= max_level
             ]
             # Find the closest parent (highest in tree with lower level than our node)
             possible_parents = [n for n in self.all_nodes.values() if n.level == level-1]
