@@ -1,0 +1,1 @@
+$(cat /root/kg_skill/references/cognitive-levels.md)

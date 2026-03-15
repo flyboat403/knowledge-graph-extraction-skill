@@ -1,0 +1,1 @@
+$(cat /root/kg_skill/PUBLISH_GUIDE.md)

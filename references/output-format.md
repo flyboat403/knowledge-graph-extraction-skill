@@ -1,0 +1,1 @@
+$(cat /root/kg_skill/references/output-format.md)

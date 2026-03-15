@@ -1,0 +1,1 @@
+$(cat /root/kg_skill/scripts/extract_knowledge_graph.py)
