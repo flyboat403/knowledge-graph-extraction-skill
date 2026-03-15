@@ -1,0 +1,147 @@
+{
+  "schema_version": "v1",
+  "skill": {
+    "id": "knowledge_graph_extractor_skill",
+    "name": "文档知识图谱结构化抽取",
+    "description": "从PDF/Word文档提取6级以上层次化知识节点，标注认知层级与语义关系，输出可导入Neo4j/Jena的CSV/Excel文件",
+    "type": "custom",
+    "version": "1.0.0",
+    "author": "知识图谱专家",
+    "tags": ["知识图谱", "文档抽取", "结构化数据", "Neo4j", "CSV/Excel"],
+    "input_params": [
+      {
+        "name": "source_document",
+        "type": "file",
+        "required": true,
+        "description": "待抽取的源文档（支持docx/pdf格式）",
+        "file_types": ["docx", "pdf"]
+      },
+      {
+        "name": "template_xlsx",
+        "type": "file",
+        "required": true,
+        "description": "字段格式模板xlsx文件（需读取A1单元格的格式要求）",
+        "file_types": ["xlsx"]
+      }
+    ],
+    "output_params": [
+      {
+        "name": "extracted_csv",
+        "type": "file",
+        "description": "结构化抽取结果的CSV文件（逗号分隔，可直接导入知识图谱工具）"
+      },
+      {
+        "name": "converted_xlsx",
+        "type": "file",
+        "description": "由CSV转换后的Excel文件（含下载链接）"
+      },
+      {
+        "name": "extraction_summary",
+        "type": "text",
+        "description": "抽取结果概要（节点数量、层级分布、关系类型等）"
+      }
+    ],
+    "execution_logic": {
+      "steps": [
+        {
+          "step_id": "step1",
+          "name": "读取模板规则",
+          "description": "解析xlsx模板A1单元格的格式要求与注释",
+          "action": "read_cell_value",
+          "params": {
+            "file_param": "template_xlsx",
+            "cell": "A1"
+          }
+        },
+        {
+          "step_id": "step2",
+          "name": "文档内容解析",
+          "description": "提取PDF/Word文档中的文本内容并分词",
+          "action": "parse_document",
+          "params": {
+            "file_param": "source_document"
+          }
+        },
+        {
+          "step_id": "step3",
+          "name": "知识节点分层抽取",
+          "description": "抽取至少6级层次化知识节点（概念/实体/术语），标注认知层级",
+          "action": "extract_hierarchical_nodes",
+          "params": {
+            "min_hierarchy_level": 6,
+            "cognitive_levels": ["记忆", "理解", "应用", "分析", "评价", "创造"]
+          }
+        },
+        {
+          "step_id": "step4",
+          "name": "语义关系抽取",
+          "description": "识别节点间语义关系（属于/依赖于/先修于/关联于等）",
+          "action": "extract_semantic_relations",
+          "params": {
+            "relation_types": ["属于", "依赖于", "先修于", "关联于", "包含", "组成", "因果"]
+          }
+        },
+        {
+          "step_id": "step5",
+          "name": "CSV格式生成",
+          "description": "按模板字段填充数据，生成逗号分隔的CSV文件",
+          "action": "generate_csv",
+          "params": {
+            "template_rules": "{{step1.output.cell_value}}"
+          }
+        },
+        {
+          "step_id": "step6",
+          "name": "Excel转换",
+          "description": "调用create_spreadsheet工具将CSV转为Excel，生成下载链接",
+          "action": "call_tool",
+          "params": {
+            "tool_id": "7365715035999649829",
+            "function_name": "create_spreadsheet",
+            "input_file": "{{step5.output.extracted_csv}}"
+          }
+        },
+        {
+          "step_id": "step7",
+          "name": "结果汇总",
+          "description": "生成抽取结果概要",
+          "action": "generate_summary",
+          "params": {
+            "node_count": "{{step3.output.node_count}}",
+            "relation_count": "{{step4.output.relation_count}}",
+            "hierarchy_levels": "{{step3.output.hierarchy_levels}}"
+          }
+        }
+      ]
+    },
+    "tool_dependencies": [
+      {
+        "tool_id": "7365715035999649829",
+        "tool_name": "create_spreadsheet",
+        "version": "1.0.0",
+        "description": "将CSV文件转换为Excel文件并返回下载链接"
+      }
+    ],
+    "compatibility": {
+      "platforms": ["coze"],
+      "import_tools": ["Neo4j", "Apache Jena", "百度百科图谱"]
+    },
+    "error_handling": {
+      "default_error_msg": "抽取失败，请检查文档格式或模板要求",
+      "specific_errors": [
+        {
+          "error_code": "FILE_FORMAT_ERROR",
+          "msg": "上传的文档格式不支持，仅支持docx/pdf（源文档）和xlsx（模板）"
+        },
+        {
+          "error_code": "CELL_READ_ERROR",
+          "msg": "无法读取xlsx模板A1单元格，请检查文件是否损坏"
+        },
+        {
+          "error_code": "HIERARCHY_INSUFFICIENT",
+          "msg": "文档中提取的知识节点层级不足6级，请补充文档内容"
+        }
+      ]
+    }
+  }
+}

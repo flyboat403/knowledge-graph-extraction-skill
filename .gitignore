@@ -1,0 +1,13 @@
+*.csv
+*.xlsx
+*.docx
+*.pdf
+*.pyc
+__pycache__/
+.coverage
+.pytest_cache/
+.venv/
+.env
+node_modules/
+dist/
+build/
