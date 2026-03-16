@@ -81,6 +81,7 @@ python scripts/extract_knowledge_graph.py --template template.xlsx --dry-run
     "pre_requisites": ["前置知识点1"],
     "related": ["关联知识点1"],
     "tags": "重点;考点",
+    "objective": "教学目标描述",
     "description": "知识点简要说明"
   }
 ]
@@ -121,6 +122,7 @@ python scripts/extract_knowledge_graph.py --template template.xlsx --dry-run
 | pre_requisites | array | 否 | 前置知识点名称列表（学习依赖，非层级关系） |
 | related | array | 否 | 关联知识点名称列表（相关但可独立学习） |
 | tags | string | 否 | 标签，多个用英文分号分隔 |
+| objective | string | 否 | 教学目标（学习该知识点后应达成的能力或理解） |
 | description | string | 否 | 知识点简要说明 |
 
 ## 前置关系 vs 层级关系

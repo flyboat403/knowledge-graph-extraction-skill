@@ -22,6 +22,7 @@
     "pre_requisites": ["前置知识点1"],
     "related": ["关联知识点1"],
     "tags": "重点;考点",
+    "objective": "教学目标描述",
     "description": "知识点简要说明"
   }
 ]
@@ -73,6 +74,7 @@
 | pre_requisites | array | 否 | 前置知识点名称列表（学习依赖，非层级关系） |
 | related | array | 否 | 关联知识点名称列表（相关但可独立学习） |
 | tags | string | 否 | 标签，多个用英文分号分隔 |
+| objective | string | 否 | 教学目标（学习该知识点后应达成的能力或理解） |
 | description | string | 否 | 知识点简要说明（不超过100字） |
 
 ## 层级分配规则
@@ -208,7 +210,7 @@
 
 输出格式：
 ```json
-[{"name": "知识点", "level": 1-7, "cognitive_level": "记忆/理解/应用/分析/评价/创造", "category": "事实性/概念性/程序性/元认知", "pre_requisites": [], "related": []}]
+[{"name": "知识点", "level": 1-7, "cognitive_level": "记忆/理解/应用/分析/评价/创造", "category": "事实性/概念性/程序性/元认知", "pre_requisites": [], "related": [], "objective": "教学目标", "description": "知识点说明"}]
 ```
 
 ⚠️ 关键要求：
