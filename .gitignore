@@ -11,3 +11,12 @@ __pycache__/
 node_modules/
 dist/
 build/
+
+# Test outputs
+test/*.txt
+test/*.json
+test/*.csv
+test/*.xlsx
+
+# Embedded git repos
+knowledge-graph-extraction-skill/
