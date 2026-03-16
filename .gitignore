@@ -1,7 +1,5 @@
+# Output files (generated)
 *.csv
-*.xlsx
-*.docx
-*.pdf
 *.pyc
 __pycache__/
 .coverage
@@ -12,11 +10,16 @@ node_modules/
 dist/
 build/
 
+# Generated documents (keep samples)
+*.xlsx
+!examples/sample_template.xlsx
+*.docx
+*.pdf
+!examples/*.pdf
+
 # Test outputs
 test/*.txt
 test/*.json
-test/*.csv
-test/*.xlsx
 
 # Embedded git repos
 knowledge-graph-extraction-skill/
