@@ -74,18 +74,42 @@ python scripts/extract_knowledge_graph.py --template template.xlsx --dry-run
 ```json
 [
   {
-    "name": "知识点名称",
+    "name": "办公软件应用",
+    "level": 1,
+    "cognitive_level": "应用",
+    "category": "程序性",
+    "pre_requisites": [],
+    "related": [],
+    "tags": "",
+    "objective": "",
+    "description": "办公软件应用课程"
+  },
+  {
+    "name": "幻灯片母版设计",
+    "level": 4,
+    "cognitive_level": "应用",
+    "category": "程序性",
+    "pre_requisites": ["幻灯片基本操作"],
+    "related": ["演示文稿模板"],
+    "tags": "重点",
+    "objective": "能够理解母版的概念和作用，掌握母版的基本操作方法",
+    "description": "学习演示文稿母版的设计与修改"
+  },
+  {
+    "name": "插入母版版式",
     "level": 5,
-    "cognitive_level": "理解",
-    "category": "概念性",
-    "pre_requisites": ["前置知识点1"],
-    "related": ["关联知识点1"],
-    "tags": "重点;考点",
-    "objective": "教学目标描述",
-    "description": "知识点简要说明"
+    "cognitive_level": "应用",
+    "category": "程序性",
+    "pre_requisites": ["进入母版视图"],
+    "related": ["删除母版版式"],
+    "tags": "",
+    "objective": "能够根据设计需求，在母版中插入新的自定义版式",
+    "description": "在幻灯片母版中插入新版式"
   }
 ]
 ```
+
+**注意**：Level 1-3 的 objective 可以为空，Level 4-7 必须填写教学目标。
 
 ## ⚠️ 关键：节点输出顺序要求
 
@@ -122,8 +146,23 @@ python scripts/extract_knowledge_graph.py --template template.xlsx --dry-run
 | pre_requisites | array | 否 | 前置知识点名称列表（学习依赖，非层级关系） |
 | related | array | 否 | 关联知识点名称列表（相关但可独立学习） |
 | tags | string | 否 | 标签，多个用英文分号分隔 |
-| objective | string | 否 | 教学目标（学习该知识点后应达成的能力或理解） |
+| objective | string | **条件必填** | 教学目标（level 4-7 必填）。描述学习后能达成的能力 |
 | description | string | 否 | 知识点简要说明 |
+
+## 教学目标生成规则
+
+| 层级 | 是否需要教学目标 | 原因 |
+|------|-----------------|------|
+| Level 1-3 | 需要 | 结构容器，目标可以泛化一些 |
+| Level 4-7 |**必填** | 学生实际应达到的具体目标 |
+
+**教学目标句式模板：**
+- 记忆：能够说出/列举...
+- 理解：能够解释/说明...
+- 应用：能够使用/操作/完成...
+- 分析：能够分析/比较/区分...
+- 评价：能够选择/判断...
+- 创造：能够设计/创建...
 
 ## 前置关系 vs 层级关系
 
@@ -174,6 +213,8 @@ python scripts/extract_knowledge_graph.py --template template.xlsx --dry-run
 抽取完成后，LLM 应自检：
 
 - [ ] **节点顺序**：父节点在子节点之前，按深度优先顺序
+- [ ] **教学目标完整性**：Level 4-7 的知识点全部有教学目标
+- [ ] **教学目标质量**：使用行为动词，描述具体可衡量的学习成果
 - [ ] **排除教学管理信息**：未抽取课程性质、教学学时、评价标准等
 - [ ] 每个知识点名称简洁准确（不超过30字）
 - [ ] 层级正确反映知识的从属关系
