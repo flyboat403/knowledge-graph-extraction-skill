@@ -5,13 +5,13 @@
 
 用法:
     # 方式1: 从 LLM JSON 输出生成 Excel（推荐）
-    python extract_knowledge_graph.py --json knowledge_nodes.json --template template.xlsx --output output.xlsx
+    python extract_knowledge_graph.py --json knowledge_nodes.json --template template-knowledge-graph.xlsx --output output.xlsx
 
     # 方式2: 提取文档内容供 LLM 处理
     python extract_knowledge_graph.py --source document.docx --extract-text --output document_content.txt
 
     # 方式3: 仅解析模板
-    python extract_knowledge_graph.py --template template.xlsx --dry-run
+    python extract_knowledge_graph.py --template template-knowledge-graph.xlsx --dry-run
 
 技术架构:
     文档 → 文本提取(--source --extract-text) → LLM处理 → JSON输出(--json) → Excel生成
@@ -768,7 +768,7 @@ def main():
         epilog="""
 示例:
   # 从 LLM JSON 生成 Excel（推荐）
-  %(prog)s --json nodes.json --template template.xlsx --output output.xlsx
+  %(prog)s --json nodes.json --template template-knowledge-graph.xlsx --output output.xlsx
   
   # 仅执行质量校验（不生成Excel）
   %(prog)s --json nodes.json --validate-only
@@ -777,7 +777,7 @@ def main():
   %(prog)s --source document.docx --extract-text --output content.txt
   
   # 仅解析模板
-  %(prog)s --template template.xlsx --dry-run
+  %(prog)s --template template-knowledge-graph.xlsx --dry-run
 """)
     parser.add_argument('--json', help='LLM 输出的 JSON 文件路径')
     parser.add_argument('--source', help='源文档路径 (docx/pdf)')
