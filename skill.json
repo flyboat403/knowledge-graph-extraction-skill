@@ -9,8 +9,10 @@
     "SKILL.md": "./SKILL.md",
     "scripts/extract_knowledge_graph.py": "./scripts/extract_knowledge_graph.py", 
     "references/output-format.md": "./references/output-format.md",
-    "prompts/extraction_prompt.md": "./prompts/extraction_prompt.md",
-    "prompts/relation_prompt.md": "./prompts/relation_prompt.md",
-    "prompts/quality_check_prompt.md": "./prompts/quality_check_prompt.md"
+    "references/extraction-prompt.md": "./references/extraction-prompt.md",
+    "references/relation-prompt.md": "./references/relation-prompt.md",
+    "references/quality-check-prompt.md": "./references/quality-check-prompt.md",
+    "examples/template-knowledge-graph.xlsx": "./examples/template-knowledge-graph.xlsx",
+    "examples/example-curriculum-office-software.pdf": "./examples/example-curriculum-office-software.pdf"
   }
 }
