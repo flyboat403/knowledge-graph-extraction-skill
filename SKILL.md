@@ -572,13 +572,18 @@ Q3: 平级 - 还有哪些同类节点？
 - 源文档格式：docx、pdf
 - 模版格式：xlsx
 
-## 错误处理
 
-| 错误代码 | 说明 |
-|----------|------|
-| FILE_FORMAT_ERROR | 上传的文档格式不支持 |
-| JSON_PARSE_ERROR | LLM 输出的 JSON 格式无效 |
-| HIERARCHY_INSUFFICIENT | 知识节点层级不足 6 级 |
-| NODE_TYPE_INVALID | 节点类型无效（A列不是"分类"或"知识点"） |
-| CATEGORY_FOR_CLASSIFICATION | 分类节点填写了知识分类（M列应留空） |
-| RELATION_MISSING | 关联关系(K列)全部为空 |
+## 验证规则与提示信息
+
+脚本在处理过程中会输出以下验证提示：
+
+| 提示类型 | 说明 | 处理方式 |
+|----------|------|----------|
+| FILE_FORMAT_ERROR | 上传的文档格式不支持（仅接受 docx/pdf） | 检查文件格式 |
+| JSON_PARSE_ERROR | LLM 输出的 JSON 格式无效或根元素不是数组 | 修正 JSON 格式 |
+| HIERARCHY_WARNING | 层级深度不足：最高层级低于6级（⚠️ 警告，非硬性要求） | 建议在末级知识点下添加细分节点 |
+| NODE_TYPE_INVALID | 节点类型无效："XX"，应为"分类"或"知识点" | 修正 A 列值 |
+| CATEGORY_FOR_CLASSIFICATION | 分类节点的知识点分类(M列)必须为空 | 清空分类节点的 M 列 |
+| RELATION_LOW_COVERAGE | 关联关系覆盖率低于50%（建议补充同类/对比关联节点） | 补充 K 列关联关系 |
+| CHINESE_SEPARATOR | 使用中文分号"；"，应使用英文分号";" | 替换为英文分号 |
+| MULTIPLE_NAMES_PER_ROW | 每行应只有1个节点名称，实际N个 | 每行只填写一个层级节点 |
