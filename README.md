@@ -210,7 +210,6 @@ python scripts/extract_knowledge_graph.py [OPTIONS]
 ## 📖 参考资料
 
 - [布鲁姆教育目标分类法](https://en.wikipedia.org/wiki/Bloom%27s_taxonomy)
-- [Neo4j 图数据库](https://neo4j.com/)
 - [Apache Jena](https://jena.apache.org/)
 
 ## 📄 许可证
