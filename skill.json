@@ -1,16 +1,16 @@
 {
   "name": "knowledge-graph-extractor",
-  "version": "1.0.0", 
-  "description": "从PDF/Word文档提取6级以上层次化知识节点，标注认知层级与语义关系，输出可导入Neo4j/Jena的CSV/Excel文件。触发场景：用户需要从文档抽取知识点、构建知识图谱、生成结构化教学数据、导出知识点层级关系。关键词：知识图谱、Neo4j、Jena、知识节点、认知层级、教学大纲、课程标准、知识点抽取、层次化知识、布鲁姆分类",
+  "version": "2.0.0", 
+  "description": "从PDF/Word文档提取6级以上层次化知识节点，标注节点类型与语义关系，执行质量校验与自动修正，输出可导入Neo4j/Jena的CSV/Excel文件。触发场景：用户需要从文档抽取知识点、构建知识图谱、生成结构化教学数据、导出知识点层级关系。关键词：知识图谱、Neo4j、Jena、知识节点、节点类型、教学大纲、课程标准、知识点抽取、层次化知识、质量校验",
   "author": "Sisyphus",
   "license": "MIT",
   "imports": [],
   "files": {
     "SKILL.md": "./SKILL.md",
     "scripts/extract_knowledge_graph.py": "./scripts/extract_knowledge_graph.py", 
-    "references/cognitive-levels.md": "./references/cognitive-levels.md",
     "references/output-format.md": "./references/output-format.md",
     "prompts/extraction_prompt.md": "./prompts/extraction_prompt.md",
-    "prompts/relation_prompt.md": "./prompts/relation_prompt.md"
+    "prompts/relation_prompt.md": "./prompts/relation_prompt.md",
+    "prompts/quality_check_prompt.md": "./prompts/quality_check_prompt.md"
   }
 }
