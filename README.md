@@ -128,8 +128,8 @@ knowledge-graph-extraction-skill/
 │   ├── output-format.md         # 输出格式规范
 │   └── cognitive-levels.md      # 认知层级定义
 └── examples/
-    ├── sample_template.xlsx     # 格式模板示例
-    └── 办公软件应用课程标准.pdf  # 测试文档示例
+    ├── template-knowledge-graph.xlsx          # 知识图谱 Excel 模板
+    └── example-curriculum-office-software.pdf # 示例课程标准文档
 ```
 
 ## 🔧 命令行参数
