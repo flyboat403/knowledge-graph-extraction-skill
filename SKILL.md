@@ -74,7 +74,7 @@ python scripts/extract_knowledge_graph.py --template template-knowledge-graph.xl
 ```json
 [
   {
-    "name": "办公软件应用",
+    "name": "演示文稿",
     "level": 1,
     "node_type": "分类",
     "category": "",
@@ -82,7 +82,7 @@ python scripts/extract_knowledge_graph.py --template template-knowledge-graph.xl
     "related": [],
     "tags": "",
     "objective": "",
-    "description": "办公软件应用课程"
+    "description": "办公软件应用课程的第三部分"
   },
   {
     "name": "幻灯片母版设计",
@@ -119,7 +119,7 @@ python scripts/extract_knowledge_graph.py --template template-knowledge-graph.xl
 | "知识点" | 填写分类值 | Level 4-7 为主 |
 
 **判断规则**：
-- Level 1-3 → node_type="分类"（课程、模块、章节等结构容器）
+- Level 1-3 → node_type="分类"（模块、项目等结构容器）
 - Level 4-7 → node_type="知识点"（主题、具体知识点等学习内容）
 
 ## ⚠️ 关键：节点输出顺序要求
@@ -132,16 +132,15 @@ python scripts/extract_knowledge_graph.py --template template-knowledge-graph.xl
 
 **正确示例**：
 ```
-1. 课程 (level 1, node_type="分类")
-2.   模块A (level 2, node_type="分类")
-3.     章节A1 (level 3, node_type="分类")
-4.       主题A1a (level 4, node_type="知识点")
-5.         知识点A1a1 (level 5, node_type="知识点")
-6.         知识点A1a2 (level 5, node_type="知识点")
-7.       主题A1b (level 4, node_type="知识点")
-8.     章节A2 (level 3, node_type="分类")
-9.   模块B (level 2, node_type="分类")
-10.    ...
+1. 模块A(level 1, node_type="分类")
+2.   章节A1 (level 2, node_type="分类")
+3.      主题A1a(level 3, node_type="分类")
+4.        知识点A1a1 (level 4, node_type="知识点")
+5.        知识点A1a2 (level 4, node_type="知识点")
+6.       主题A1b (level 3, node_type="分类")
+7.     章节A2 (level 2, node_type="分类")
+8.   模块B (level 1, node_type="分类")
+9.    ...
 ```
 
 **错误示例（禁止）**：按层级排序（所有level 1 → 所有level 2 → ...）
@@ -151,8 +150,8 @@ python scripts/extract_knowledge_graph.py --template template-knowledge-graph.xl
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | name | string | 是 | 知识点名称（简洁准确，不超过30字） |
-| level | int | 是 | 层级 1-7（1=课程，2=模块，3=章节，4=主题，5=知识点，6-7=细分） |
-| node_type | string | 是 | **新增**：节点类型，"分类" 或 "知识点" |
+| level | int | 是 | 层级 1-7（1=模块，2=章节，3=主题，4=知识点，5-7=细分） |
+| node_type | string | 是 | 节点类型，"分类" 或 "知识点" |
 | category | string | 条件 | 知识分类（仅 node_type="知识点" 时填写）：事实性/概念性/程序性/元认知 |
 | pre_requisites | array | 否 | 前置知识点名称列表（学习依赖，非层级关系） |
 | related | array | 否 | 关联知识点名称列表（相关但可独立学习） |
@@ -385,13 +384,13 @@ Excel 第二行的列名是固定不变的，由脚本生成时硬编码写入�
 | 列 | 固定列名 | 说明 |
 |----|----------|------|
 | A | 节点类型 | 分类 或 知识点 |
-| B | 节点名称 | 一级（课程级） |
-| C | 节点名称 | 二级（模块级） |
-| D | 节点名称 | 三级（章节级） |
-| E | 节点名称 | 四级（主题级） |
-| F | 节点名称 | 五级（知识点级） |
-| G | 节点名称 | 六级（细分级） |
-| H | 节点名称 | 七级（原子级） |
+| B | 节点名称 | level1（模块/项目级） |
+| C | 节点名称 | level2（章/单元/任务级） |
+| D | 节点名称 | level3（节/知识主题/工序级） |
+| E | 节点名称 | level4（知识点级） |
+| F | 节点名称 | level5（细分级） |
+| G | 节点名称 | level6（原子级） |
+| H | 节点名称 | level7（精细级） |
 | I | 前置节点 | 学习依赖的前置知识点 |
 | J | 后置节点 | 前置关系的反向（自动生成） |
 | K | 关联节点 | 相关但不构成依赖的知识点 |
@@ -464,13 +463,13 @@ Excel 第二行的列名是固定不变的，由脚本生成时硬编码写入�
 
 ```
 ❌ 错误: 
-  行1: [B列: 课程] 
+  行1: [B列: 模块] 
   行2: [D列: 章节]  # 跳过了C列
 
 ✅ 正确:
-  行1: [B列: 课程]
-  行2: [C列: 模块]
-  行3: [D列: 章节]
+  行1: [B列: 模块]
+  行2: [C列: 单元]
+  行3: [D列: 主题]
 ```
 
 **Why**: 每个知识节点必须有完整的父链。跳跃层级会破坏树结构。
