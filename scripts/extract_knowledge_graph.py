@@ -71,16 +71,16 @@ EXPECTED_HEADERS = [
 
 # 层级名称
 LEVEL_NAMES = {
-    1: '一级(课程)', 
-    2: '二级(模块)', 
-    3: '三级(章节)', 
-    4: '四级(主题)', 
-    5: '五级(知识点)', 
-    6: '六级', 
-    7: '七级'
+    1: 'level1(模块)', 
+    2: 'level2(章节)', 
+    3: 'level3(主题)', 
+    4: 'level4(知识点)', 
+    5: 'level5(细分知识点)', 
+    6: 'level6(原子内容)', 
+    7: 'level7(精细内容)'
 }
 
-# 层级到列映射：从B列开始（B=一级, H=七级）
+# 层级到列映射：从B列开始（B=level1, H=level7）
 # 新模板结构：A列=节点类型, B-H列=层级节点名称
 LEVEL_TO_COL = {1: "B", 2: "C", 3: "D", 4: "E", 5: "F", 6: "G", 7: "H"}
 
@@ -90,8 +90,8 @@ LEVEL_TO_COL = {1: "B", 2: "C", 3: "D", 4: "E", 5: "F", 6: "G", 7: "H"}
 class KnowledgeNode:
     """知识点节点"""
     name: str
-    level: int  # 1=B(一级), 2=C(二级), ..., 7=H(七级)
-    node_type: str = "知识点"  # 新增：节点类型，"分类" 或 "知识点"
+    level: int  # 1=B(level1), 2=C(level2), ..., 7=H(level3)
+    node_type: str = "知识点"  # 节点类型，"分类" 或 "知识点"
     tags: str = ""
     category: str = ""  # 知识点分类（仅知识点节点时填写）
     objective: str = ""
@@ -107,8 +107,8 @@ def determine_node_type(level: int, name: str = "") -> str:
     """根据层级确定节点类型
     
     规则：
-    - Level 1-3 默认为"分类"（课程、模块、章节等结构容器）
-    - Level 4-7 默认为"知识点"（主题、具体知识点等学习内容）
+    - Level 1-3 默认为"分类"（模块、章节、主题等结构容器）
+    - Level 4-7 默认为"知识点"（具体知识点等学习内容）
     """
     if level <= 3:
         return "分类"
@@ -342,9 +342,9 @@ def build_knowledge_tree(nodes: List[KnowledgeNode]) -> List[KnowledgeNode]:
 def flatten_nodes(nodes: List[KnowledgeNode]) -> List[Dict]:
     """将知识节点列表扁平化为 Excel 行数据
     
-    新模板列结构：
+    模板列结构：
     - A列: 节点类型（分类/知识点）
-    - B-H列: 节点名称层级（一级=B, 七级=H）
+    - B-H列: 节点名称层级（level1=B, level7=H）
     - I列: 前置节点
     - J列: 后置节点
     - K列: 关联节点
@@ -402,7 +402,7 @@ def generate_excel(rows: List[Dict], output_path: str, template_rules: str = "")
     ws = wb.active
     ws.title = "知识点抽取结果"
     
-    # A1单元格使用说明（匹配新模板）
+    # A1单元格使用说明（匹配模板）
     instructions = template_rules or """使用说明：
 1. 后面带"*"的为必填项
 2. 节点类型：分类、知识点
@@ -414,7 +414,7 @@ def generate_excel(rows: List[Dict], output_path: str, template_rules: str = "")
 8. 节点说明以及教学目标仅支持输入文本"""
     
     ws['A1'] = instructions
-    ws.merge_cells('A1:O1')
+    ws.merge_cells('A1:K1')
     ws['A1'].alignment = Alignment(wrap_text=True, vertical='top')
 
     # 新模板表头
@@ -538,6 +538,33 @@ def validate_headers(filepath: str) -> List[str]:
             col_letter = chr(64 + col_idx)
             errors.append(f"列{col_letter}实际为'{actual_header}',应为'{expected_header}'")
 
+    return errors
+
+def validate_first_row(filepath: str) -> List[str]:
+    """验证Excel文件第一行合并单元格
+    
+    检查 A1:K1 是否正确合并，确保格式符合下游导入系统要求。
+    
+    Args:
+        filepath: Excel文件路径
+        
+    Returns:
+        错误列表，空列表表示校验通过
+    """
+    wb = load_workbook(filepath)
+    ws = wb.active
+    
+    errors = []
+    merged_ranges = list(ws.merged_cells.ranges)
+    
+    # 检查 A1:K1 合并
+    expected_merge = "A1:K1"
+    has_expected = any(str(m) == expected_merge for m in merged_ranges)
+    
+    if not has_expected:
+        actual = [str(m) for m in merged_ranges]
+        errors.append(f"第一行合并单元格应为 A1:K1，实际为 {actual}")
+    
     return errors
 
 # ==================== 语义质量校验 ====================
@@ -909,6 +936,17 @@ def main():
         sys.exit(1)
     else:
         print("  ✅ 表头校验通过")
+
+    # 步骤8: 合并单元格校验
+    print("步骤8: 合并单元格校验...")
+    merge_errors = validate_first_row(args.output)
+    if merge_errors:
+        print(f"  ❌ 发现 {len(merge_errors)} 个合并单元格错误:")
+        for err in merge_errors:
+            print(f"     {err}")
+        sys.exit(1)
+    else:
+        print("  ✅ 合并单元格校验通过")
 
     # 输出统计
     print_statistics(nodes, rows, args.output, csv_path)
