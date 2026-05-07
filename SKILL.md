@@ -109,31 +109,7 @@ python scripts/extract_knowledge_graph.py --template template-knowledge-graph.xl
 5. 输出校验报告，确认所有项✅
 ```
 
-#### 校验示例
-
-**问题1：教学目标缺失**
-```json
-// 问题节点
-{"name": "欧姆定律", "level": 5, "node_type": "知识点", "objective": ""}
-// 修正后
-{"name": "欧姆定律", "level": 5, "node_type": "知识点", "objective": "能够理解欧姆定律的物理意义，掌握电压、电流、电阻的关系计算"}
-```
-
-**问题2：层级深度不足**
-```json
-// 问题：最高只有5级，需要达到6级
-{"name": "电阻", "level": 5, ...}
-// 修正：添加细分节点
-{"name": "电阻的测量方法", "level": 6, "node_type": "知识点", "category": "程序性", "objective": "能够使用万用表测量电阻值"}
-```
-
-**问题3：分类节点有知识分类**
-```json
-// 问题节点
-{"name": "电路基础", "level": 3, "node_type": "分类", "category": "概念性"}
-// 修正后
-{"name": "电路基础", "level": 3, "node_type": "分类", "category": ""}
-```
+如需查看校验示例，阅读 [references/quality-check-prompt.md](references/quality-check-prompt.md) 中的"校验示例"部分。
 
 #### 校验通过标准
 
@@ -144,9 +120,13 @@ python scripts/extract_knowledge_graph.py --template template-knowledge-graph.xl
 | 教学目标覆盖 | Level 4-7节点100%有objective |
 | 教学目标质量 | 所有objective包含行为动词 |
 | 层级深度 | max(level) ≥ 6 |
+| 层级跳跃 | 父子层级连续，无断层 |
 | 知识分类约束 | 分类节点category="" |
 | 知识点分类覆盖 | 知识点节点category在有效值内 |
+| 节点名称长度 | 所有节点名称≤30字 |
 | 关联关系覆盖 | >50%知识点节点有related |
+| 节点顺序 | 父节点在子节点之前（深度优先） |
+| 列名结构 | Excel第二行列名与模板100%一致 |
 | 知识点子节点约束 | 知识点节点无children（有children则自动修正为分类） |
 
 #### 调用脚本校验（可选）
@@ -427,3 +407,33 @@ Q3: 平级 - 还有哪些同类节点？
 | RELATION_LOW_COVERAGE | 关联关系覆盖率低于50%（建议补充同类/对比关联节点） | 补充 K 列关联关系 |
 | CHINESE_SEPARATOR | 使用中文分号"；"，应使用英文分号";" | 替换为英文分号 |
 | MULTIPLE_NAMES_PER_ROW | 每行应只有1个节点名称，实际N个 | 每行只填写一个层级节点 |
+
+---
+
+## 故障排除
+
+### 脚本执行失败
+
+| 问题 | 可能原因 | 解决方法 |
+|------|----------|----------|
+| `openpyxl` 未安装 | 缺少 Python 依赖 | `pip install openpyxl python-docx pdfplumber` |
+| JSON 解析错误 | LLM 输出格式不符合要求 | 检查 JSON 是否为有效数组格式，确保根元素是 `[]` |
+| 模板文件未找到 | `--template` 路径错误 | 确认模板文件路径，使用 `--dry-run` 测试 |
+| Excel 生成失败 | 数据格式异常 | 检查 JSON 中是否有特殊字符 |
+
+### LLM 抽取质量问题
+
+| 问题 | 可能原因 | 解决方法 |
+|------|----------|----------|
+| 层级深度不足（<6级） | 文档内容不够细 | 在末级节点下添加细分，或提供更详细的文档 |
+| 节点类型判断错误 | level与node_type不匹配 | 检查 Level 1-3 是否设为"分类"，Level 4-7 设为"知识点" |
+| 关系引用不匹配 | 名称不完全一致 | 确保 pre_requisites/related 与节点 name 完全一致 |
+| 教学管理信息被抽取 | 未遵守排除规则 | 参照"排除内容"清单重新过滤 |
+
+### 输出文件问题
+
+| 问题 | 可能原因 | 解决方法 |
+|------|----------|----------|
+| 导入超星平台失败 | 列名被修改 | 重新运行脚本生成，确保第二行列名与标准一致 |
+| CSV 乱码 | 编码问题 | 脚本已使用 UTF-8 BOM 编码，检查导入平台编码设置 |
+| 关系数超过2000条 | 节点间过度关联 | 减少不必要的关系，只保留有实际教学意义的关联 |
